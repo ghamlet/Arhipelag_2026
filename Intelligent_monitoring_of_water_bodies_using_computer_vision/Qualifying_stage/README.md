@@ -2,7 +2,7 @@
 
 https://steps.2035.university/timetable/event/134e17f6-4b34-49e7-a355-aceea852f218
 
-![image-20260629205250784](/home/arrma/PROGRAMMS/Arhipelag_2026/Intelligent_monitoring_of_water_bodies_using_computer_vision/Qualifying_stage/images/image-20260629205250784.png)
+![image-20260629205250784](images/image-20260629205250784.png)
 
 
 
