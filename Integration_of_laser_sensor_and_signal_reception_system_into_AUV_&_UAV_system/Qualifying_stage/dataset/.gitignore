@@ -1,0 +1,19 @@
+# === DATASET SAMPLES START ===
+black_box/*
+!black_box/
+!black_box/img_0000.png
+!black_box/img_0001.png
+!black_box/img_0002.png
+!black_box/img_0003.png
+!black_box/img_0004.png
+cubes/*
+!cubes/
+!cubes/cube_1_0000.jpg
+!cubes/cube_1_0001.jpg
+!cubes/cube_1_0002.jpg
+!cubes/cube_1_0003.jpg
+!cubes/cube_1_0004.jpg
+no_object/*
+!no_object/
+!no_object/image.png
+# === DATASET SAMPLES END ===
