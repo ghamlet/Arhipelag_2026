@@ -39,9 +39,8 @@ def fly_through_points(points):                # функция полета п�
         drone.go_to_local_point(               # отправляем дрон в текущую точку
             x=point["x"],                      # координата точки по оси X
             y=point["y"],                      # координата точки по оси Y
-            z=point["z"],                      # координата точки по оси Z
-            yaw=point["yaw"],                  # поворот по курсу в градусах
-            time=3                             # время, за которое нужно достигнуть точку
+            z=point["z"]                      # координата точки по оси Z
+                                         # время, за которое нужно достигнуть точку
         )
 
         wait_for_point()                       # ждем, пока дрон долетит до текущей точки
@@ -50,19 +49,18 @@ def fly_through_points(points):                # функция полета п�
 ALTITUDE = 1.5  # фиксированная высота полета (метры)
 
 waypoints = [
-    "140; 175",
-    "240; 175",
-    "340; 175",
-    "340; 275",
-    "240; 275",
-    "140; 275",
+    (140, 175),
+    (240, 175),
+    (340, 175),
+    (340, 275),
+    (240, 275),
+    (140, 275),
 ]
 
 def parse_waypoints(raw):
     result = []
-    for w in raw:
-        x, y = w.split(";")
-        result.append({"x": float(x.strip()), "y": float(y.strip()), "z": ALTITUDE, "yaw": 0})
+    for x, y in raw:
+        result.append({"x": x, "y": y, "z": ALTITUDE, "yaw": 0})
     return result
 
 
