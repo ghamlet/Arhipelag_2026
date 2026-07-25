@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 
-MODEL_PATH = '../weights/best.pt'
+MODEL_PATH = 'Final_stage/weights/best.pt'
 EXPORT_FORMAT = 'onnx'
 OPSET = 12
 

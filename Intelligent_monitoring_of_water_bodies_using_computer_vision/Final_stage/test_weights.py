@@ -4,9 +4,9 @@ from ultralytics import YOLO
 
 # 1. Настройки путей (измени на свои)
 # Если файлы лежат в папке со скриптом, можно написать просто 'best.pt'
-MODEL_PATH = '/home/arrma/PROGRAMMS/Arhipelag_2026/Intelligent_monitoring_of_water_bodies_using_computer_vision/Final_stage/weights/best.pt'  
+MODEL_PATH = '/home/arrma/PROGRAMMS/Arhipelag_2026/Intelligent_monitoring_of_water_bodies_using_computer_vision/Final_stage/weights/best_2.pt'  
 INPUT_FOLDER = '/home/arrma/Downloads/pool.yolov8/test/images'  # Откуда брать фото
-OUTPUT_FOLDER = '/home/arrma/PROGRAMMS/Arhipelag_2026/Intelligent_monitoring_of_water_bodies_using_computer_vision/Final_stage/output'      # Куда сохранять результат
+OUTPUT_FOLDER = '/home/arrma/PROGRAMMS/Arhipelag_2026/Intelligent_monitoring_of_water_bodies_using_computer_vision/Final_stage/output2'      # Куда сохранять результат
 
 # 2. Создаем папку для результатов, если её нет
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
