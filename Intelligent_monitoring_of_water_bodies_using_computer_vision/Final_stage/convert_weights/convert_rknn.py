@@ -12,8 +12,8 @@ from rknn.api import RKNN
 
 rknn = RKNN(verbose=True)
 rknn.config(
-    mean_values=[],
-    std_values=[],
+    mean_values=[[0, 0, 0]],
+    std_values=[[255, 255, 255]],
     target_platform=TARGET_PLATFORM,
 )
 
