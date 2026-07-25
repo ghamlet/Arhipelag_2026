@@ -295,3 +295,19 @@ results = model.train(
 
 
 2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+https://gitflic.ru/company/geoscan-llc/project?sort=updated_at&direction=ASC

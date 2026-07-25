@@ -1,8 +1,13 @@
+# дописать норм путь для созраненияв
+
+
 import cv2
 from datetime import datetime
+from pioneer_sdk2 import Camera, CameraType
 
 
 def main():
+
     rtsp_url = "rtsp://10.42.0.1:8554/camera"
     cap = cv2.VideoCapture(rtsp_url)
 

@@ -11,7 +11,7 @@ def main():
         while True:
             frame = camera.get_cv_frame(timeout=5.0)
             if frame is not None:
-                # cv2.imshow("Drone Stream (SDK2)", frame)
+                cv2.imshow("Drone Stream (SDK2)", frame)
                 viewer.imshow("camera", frame, fps=30)
 
             
