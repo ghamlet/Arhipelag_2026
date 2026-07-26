@@ -6,6 +6,7 @@ OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output_a
 
 FRAME_DELAY_MS = 1  # задержка между кадрами (мс), 0 = без задержки
 PAUSE_ON_DETECT = True  # пауза при обнаружении маркера (e — продолжить)
+SHOW_BOUNDING_BOX = True  # показывать квадратный bbox и размер в пикселях
 
 # adaptiveThreshWinSizeStep — шаг окна адаптивной бинаризации.
 # Алгоритм сканирует кадр окнами: 3x3, 3+step, 3+2*step, ... до max.
@@ -38,19 +39,37 @@ class ArucoDetector:
         corners, ids, _ = self.detector.detectMarkers(frame)
         return corners, ids
 
-    def draw(self, frame, corners, ids):
+    def draw(self, frame, corners, ids, show_bounding_box=False):
         if ids is None or len(ids) == 0:
             return frame
 
         cv2.aruco.drawDetectedMarkers(frame, corners, ids)
 
         for i, marker_id in enumerate(ids.flatten()):
-            cx = int(corners[i][0][:, 0].mean())
-            cy = int(corners[i][0][:, 1].mean())
+            pts = corners[i][0]
+
+            cx = int(pts[:, 0].mean())
+            cy = int(pts[:, 1].mean())
+
             label = f"ID: {marker_id}"
             cv2.putText(frame, label, (cx - 20, cy - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             cv2.circle(frame, (cx, cy), 5, (0, 0, 255), -1)
+
+            if show_bounding_box:
+                side = max(
+                    int(pts[1][0] - pts[0][0]),
+                    int(pts[2][1] - pts[1][1]),
+                    int(abs(pts[2][0] - pts[0][0])),
+                    int(abs(pts[3][1] - pts[1][1])),
+                )
+                half = side // 2
+                x1, y1 = cx - half, cy - half
+                x2, y2 = cx + half, cy + half
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 0), 2)
+                size_label = f"{side}px"
+                cv2.putText(frame, size_label, (x1, y1 - 8),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
 
         return frame
 
@@ -86,7 +105,7 @@ def process_video(input_path, output_path):
         if ids is not None and len(ids) > 0:
             detected_count += 1
 
-        result = detector.draw(frame.copy(), corners, ids)
+        result = detector.draw(frame.copy(), corners, ids, show_bounding_box=SHOW_BOUNDING_BOX)
         writer.write(result)
 
         cv2.imshow("ArUco Detection", result)
