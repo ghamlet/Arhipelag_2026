@@ -4,6 +4,9 @@ import cv2
 VIDEO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "4.mp4")
 OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output_aruco.mp4")
 
+FRAME_DELAY_MS = 10  # задержка между кадрами (мс), 0 = без задержки
+PAUSE_ON_DETECT = True  # пауза при обнаружении маркера (e — продолжить)
+
 DICT_TYPE = cv2.aruco.DICT_4X4_100
 
 
@@ -70,8 +73,21 @@ def process_video(input_path, output_path):
         writer.write(result)
 
         cv2.imshow("ArUco Detection", result)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+
+        if PAUSE_ON_DETECT and ids is not None and len(ids) > 0:
+            print(f"Маркер обнаружен! Нажми 'e' чтобы продолжить")
+            while True:
+                key = cv2.waitKey(0) & 0xFF
+                if key == ord('e'):
+                    break
+                elif key == ord('q'):
+                    cap.release()
+                    writer.release()
+                    cv2.destroyAllWindows()
+                    return
+        else:
+            if cv2.waitKey(FRAME_DELAY_MS) & 0xFF == ord('q'):
+                break
 
     cap.release()
     writer.release()
