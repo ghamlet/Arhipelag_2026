@@ -1,5 +1,6 @@
 import os
 import cv2
+import numpy as np
 
 VIDEO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "4.mp4")
 OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output_aruco.mp4")
@@ -57,19 +58,12 @@ class ArucoDetector:
             cv2.circle(frame, (cx, cy), 5, (0, 0, 255), -1)
 
             if show_bounding_box:
-                side = max(
-                    int(pts[1][0] - pts[0][0]),
-                    int(pts[2][1] - pts[1][1]),
-                    int(abs(pts[2][0] - pts[0][0])),
-                    int(abs(pts[3][1] - pts[1][1])),
-                )
-                half = side // 2
-                x1, y1 = cx - half, cy - half
-                x2, y2 = cx + half, cy + half
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 0), 2)
-                size_label = f"{side}px"
-                cv2.putText(frame, size_label, (x1, y1 - 8),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
+                rect = cv2.minAreaRect(pts.astype(np.float32))
+                box = cv2.boxPoints(rect)
+                box = np.intp(box)
+                cv2.drawContours(frame, [box], 0, (255, 255, 0), 2)
+                w, h = rect[1]
+                side = max(int(w), int(h))
                 print(f"Маркер ID={marker_id}, размер={side}px, центр=({cx}, {cy})")
 
         return frame
