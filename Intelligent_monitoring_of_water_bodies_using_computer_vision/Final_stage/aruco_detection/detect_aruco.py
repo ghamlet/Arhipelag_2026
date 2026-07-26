@@ -4,17 +4,17 @@ import cv2
 VIDEO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "4.mp4")
 OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output_aruco.mp4")
 
-FRAME_DELAY_MS = 10  # задержка между кадрами (мс), 0 = без задержки
+FRAME_DELAY_MS = 1  # задержка между кадрами (мс), 0 = без задержки
 PAUSE_ON_DETECT = True  # пауза при обнаружении маркера (e — продолжить)
 
-DICT_TYPE = cv2.aruco.DICT_4X4_100
+DICT_TYPE = cv2.aruco.DICT_4X4_50
 
 
 class ArucoDetector:
-    def __init__(self, dictionary_type=DICT_TYPE):
+    def __init__(self, dictionary_type=DICT_TYPE, thresh_step=4):
         self.aruco_dict = cv2.aruco.getPredefinedDictionary(dictionary_type)
         self.aruco_params = cv2.aruco.DetectorParameters()
-        self.aruco_params.minMarkerPerimeterRate = 0.1
+        self.aruco_params.adaptiveThreshWinSizeStep = thresh_step  # шаг окна бинаризации (по умолч. 10)
         self.detector = cv2.aruco.ArucoDetector(self.aruco_dict, self.aruco_params)
 
     def detect(self, frame):
