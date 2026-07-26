@@ -3,7 +3,7 @@ import cv2
 from datetime import datetime
 from pioneer_sdk2 import Camera, CameraType
 
-RECORDS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "рекорды")
+RECORDS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "records")
 os.makedirs(RECORDS_DIR, exist_ok=True)
 
 RTSP_URL = "rtsp://10.42.0.1:8554/camera"
