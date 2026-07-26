@@ -70,6 +70,7 @@ class ArucoDetector:
                 size_label = f"{side}px"
                 cv2.putText(frame, size_label, (x1, y1 - 8),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
+                print(f"Маркер ID={marker_id}, размер={side}px, центр=({cx}, {cy})")
 
         return frame
 
