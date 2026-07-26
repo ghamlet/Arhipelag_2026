@@ -7,14 +7,31 @@ OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output_a
 FRAME_DELAY_MS = 1  # задержка между кадрами (мс), 0 = без задержки
 PAUSE_ON_DETECT = True  # пауза при обнаружении маркера (e — продолжить)
 
+# adaptiveThreshWinSizeStep — шаг окна адаптивной бинаризации.
+# Алгоритм сканирует кадр окнами: 3x3, 3+step, 3+2*step, ... до max.
+# Чем меньше шаг — тем детальнее сканирование, тем лучше ловит
+# деформированные/замаскированные маркеры, но тем медленнее работает.
+#
+#   Значение | Эффект
+#   ---------|----------------------------------------------
+#      1     | максимальная точность, самое медленное
+#      3     | хорошая точность для маркеров под сеткой
+#      5     | баланс скорость/точность
+#     10     | по умолчанию в OpenCV, быстрое сканирование
+#     20+    | грубое, пропускает мелкие деформации
+
+TRESH_STEP = 3
+
+
+
 DICT_TYPE = cv2.aruco.DICT_4X4_50
 
 
 class ArucoDetector:
-    def __init__(self, dictionary_type=DICT_TYPE, thresh_step=4):
+    def __init__(self, dictionary_type=DICT_TYPE, thresh_step=TRESH_STEP):
         self.aruco_dict = cv2.aruco.getPredefinedDictionary(dictionary_type)
         self.aruco_params = cv2.aruco.DetectorParameters()
-        self.aruco_params.adaptiveThreshWinSizeStep = thresh_step  # шаг окна бинаризации (по умолч. 10)
+        self.aruco_params.adaptiveThreshWinSizeStep = thresh_step
         self.detector = cv2.aruco.ArucoDetector(self.aruco_dict, self.aruco_params)
 
     def detect(self, frame):
@@ -51,7 +68,7 @@ def process_video(input_path, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
-    detector = ArucoDetector()
+    detector = ArucoDetector(thresh_step=TRESH_STEP)
     frame_count = 0
     detected_count = 0
 
