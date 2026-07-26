@@ -13,6 +13,8 @@ def show_camera():                             # функция вывода в�
         viewer.imshow("pioneer_camera", frame) # отправляем изображение в RTSP-трансляцию
 
 
+
+
 def wait_for_point():                          # функция ожидания прилета дрона в точку
     while not drone.point_reached():   
         pass        # ждем, пока дрон не достигнет заданной точки
@@ -26,13 +28,16 @@ def go_to_start_point():                       # функция взлета и 
     time.sleep(3)  # обязательно чтоб успел взлететь
 
     drone.go_to_local_point(x=0, y=0, z=1, yaw=0) # летим в начальную точку
-                                                          # x, y, z - координаты точки в метрах
-    time.sleep(3)  # обязательно чтоб успел взлететь
-
-                                                          # yaw - поворот по курсу в градусах
-                                                          # time - время, за которое нужно достигнуть точку
+    time.sleep(3)
 
     wait_for_point()                           # ждем, пока дрон долетит до начальной точки
+
+
+def hover(seconds: float):                     # функция зависания на текущей точке
+    end_time = time.time() + seconds          # вычисляем время окончания
+    while time.time() < end_time:             # ждем указанное время
+        show_camera()                         # показываем видео во время зависания
+        time.sleep(0.1)                       # пауза чтобы не нагружать процессор
 
 
 def fly_through_points(points):                # функция полета по заданным точкам
