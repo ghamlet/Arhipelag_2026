@@ -2,7 +2,13 @@ import os
 import cv2
 import numpy as np
 
-VIDEO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "4.mp4")
+
+END_POINT = "camera"
+
+RTSP_URL = f"rtsp://10.42.0.1:8554/{END_POINT}"
+
+
+VIDEO_PATH = RTSP_URL
 OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output_aruco.mp4")
 
 FRAME_DELAY_MS = 1  # задержка между кадрами (мс), 0 = без задержки
