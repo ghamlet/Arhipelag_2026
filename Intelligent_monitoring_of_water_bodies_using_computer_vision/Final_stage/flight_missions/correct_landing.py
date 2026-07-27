@@ -5,25 +5,16 @@ import sys
 import cv2
 import numpy as np
 
-
 servo = ServoCamera()
 servo.set_angle(-80)
 
-
 ALTITUDE = 1.8
 
-# hover_mode: "seconds" — по таймеру, "input" — ждём Enter
-HOVER_MODE = "seconds"
-HOVER_SECONDS = 5
-
-# корректировка посадки
-CORRECTION_ITERATIONS = 3
-FRAMES_TO_READ = 5  # сколько кадров считать для усреднения
-
-# подстройка под камеру: пикселей на метр
-# Pioneer 1080x720, на высоте 1м видит 1×1м → на ALTITUDE видит ALTITUDE×ALTITUDE м
-PX_PER_M_X = 1080 / ALTITUDE
-PX_PER_M_Y = 720 / ALTITUDE
+# подстройка под камеру: сколько пикселей на метр при высоте ALTITUDE
+# измерить empirically: посчитать пиксели оранжевого квадрата известного размера
+# формула: PX_PER_M = (IMAGE_WIDTH / (2 * ALTITUDE * tan(HFOV/2)))
+# Pioneer typical: HFOV ~ 96 deg, IMAGE_WIDTH ~ 640
+PX_PER_M = 100  # пикселей на метр (подобрать экспериментально)
 
 # HSV диапазон оранжевого
 ORANGE_H_MIN = 5
@@ -33,10 +24,15 @@ ORANGE_S_MAX = 255
 ORANGE_V_MIN = 100
 ORANGE_V_MAX = 255
 
+# порог площади контура чтобы считать объект валидным
 MIN_CONTOUR_AREA = 500
 
+HOVER_MODE = "input"
+HOVER_SECONDS = 15
+
 waypoints = [
-    (-3.3, 0.8)
+    (-2.9, 0.8),
+    (-3.1, 0.8)
 ]
 
 drone = Pioneer()
@@ -60,12 +56,9 @@ def hover(seconds=None, mode=None):
                     if line == "yes":
                         break
                 time.sleep(0.1)
-       
         except KeyboardInterrupt:
             print("Остановка, посадка")
             drone.land()
-
-            
     else:
         t = seconds if seconds is not None else HOVER_SECONDS
         end_time = time.time() + t
@@ -85,11 +78,11 @@ def show_camera():
 
 def wait_for_point():
     while not drone.point_reached():
-        # show_camera()
         time.sleep(0.1)
 
 
 def find_orange_center(frame):
+    """Находит центр оранжевого объекта в кадре. Возвращает (cx, cy) в пикселях или None."""
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv,
                        np.array([ORANGE_H_MIN, ORANGE_S_MIN, ORANGE_V_MIN]),
@@ -99,6 +92,7 @@ def find_orange_center(frame):
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
     if not contours:
         return None
 
@@ -115,49 +109,43 @@ def find_orange_center(frame):
     return cx, cy
 
 
-def correct_position_once():
-    """Считывает FRAMES_TO_READ кадров, находит средний центр оранжевого объекта,
-    вычисляет смещение и выполняет полёт через go_to_local_point_body_fixed."""
+def correct_position():
+    """Считывает кадр, находит оранжевый объект, вычисляет смещение и летит туда."""
     global current_point_label
 
-    centers = []
-    for i in range(FRAMES_TO_READ):
-        frame = camera.get_cv_frame(timeout=1.0)
-        if frame is not None:
-            result = find_orange_center(frame)
-            if result:
-                centers.append(result)
-                print(f"  Кадр {i+1}: ({result[0]}, {result[1]})")
-            else:
-                print(f"  Кадр {i+1}: объект не найден")
-        time.sleep(0.1)
+    frame = camera.get_cv_frame(timeout=1.0)
+    if frame is None:
+        print("Не удалось получить кадр")
+        return
 
-    if not centers:
-        print("Оранжевый объект не найден ни на одном кадре")
-        return False
+    h, w = frame.shape[:2]
+    center_x, center_y = w // 2, h // 2
 
-    avg_cx = np.mean([c[0] for c in centers])
-    avg_cy = np.mean([c[1] for c in centers])
+    result = find_orange_center(frame)
+    if result is None:
+        print("Оранжевый объект не найден")
+        return
 
-    h, w = 720, 1080
-    center_x, center_y = w / 2, h / 2
+    cx, cy = result
+    dx_px = cx - center_x  # смещение по X в пикселях (вправо +)
+    dy_px = cy - center_y  # смещение по Y в пикселях (вниз +)
 
-    dx_px = avg_cx - center_x
-    dy_px = avg_cy - center_y
+    dx_m = dx_px / PX_PER_M
+    dy_m = dy_px / PX_PER_M
 
-    dx_m = dx_px / PX_PER_M_X
-    dy_m = dy_px / PX_PER_M_Y
+    print(f"Объект в ({cx}, {cy}), центр кадра ({center_x}, {center_y})")
+    print(f"Смещение: {dx_px}px / {dx_m:.2f}m по X, {dy_px}px / {dy_m:.2f}m по Y")
 
-    # X вправо, Y вверх
-    drone_x = dx_m
-    drone_y = -dy_m
+    # body_fixed: x — вперёд/назад, y — влево/вправо
+    # dy_px > 0 значит объект ниже центра → дрон должен лететь назад (x отрицательный)
+    # dx_px > 0 значит объект правее центра → дрон должен лететь вправо (y положительный)
+    drone_x = -dy_m
+    drone_y = dx_m
 
-    print(f"Средний центр: ({avg_cx:.1f}, {avg_cy:.1f}), смещение: {dx_m:.3f}m x, {dy_m:.3f}m y")
-    print(f"go_to_local_point_body_fixed: x={drone_x:.3f}, y={drone_y:.3f}")
-
+    print(f"go_to_local_point_body_fixed: x={drone_x:.2f}, y={drone_y:.2f}")
     drone.go_to_local_point_body_fixed(x=drone_x, y=drone_y, z=0, yaw=0, time=3)
     wait_for_point()
-    return True
+    print("Корректировка завершена")
 
 
 try:
@@ -166,37 +154,23 @@ try:
     drone.takeoff()
     time.sleep(3)
 
-    # drone.go_to_local_point(x=0, y=0, z=ALTITUDE, yaw=0, time=5)
-    # wait_for_point()
-
     for i, (x, y) in enumerate(waypoints):
         print(f"Летим в точку {i+1}/{len(waypoints)}: x={x}, y={y}, z={ALTITUDE}")
         drone.go_to_local_point(x=x, y=y, z=ALTITUDE, yaw=0, time=5)
         wait_for_point()
         current_point_label = f"Point {i+1}: x={x}, y={y}"
         print(f"Точка {i+1} достигнута!")
-
         hover()
-
-
-
 
     print("Возвращаемся домой")
     current_point_label = "Home"
     drone.go_to_local_point(x=0, y=0, z=ALTITUDE, yaw=0, time=5)
     wait_for_point()
 
-    print(f"\n=== КОРРЕКТИРОВКА ПОСАДКИ ({CORRECTION_ITERATIONS} итераций) ===")
-    for i in range(CORRECTION_ITERATIONS):
-        print(f"\n--- Итерация {i+1}/{CORRECTION_ITERATIONS} ---")
-        current_point_label = f"Correction {i+1}"
-        ok = correct_position_once()
-        if not ok:
-            print("Объект потерян, прерываю корректировку")
-            break
-        time.sleep(1)
+    print("Поиск оранжевой площадки...")
+    time.sleep(2)
+    correct_position()
 
-    print("\nПосадка")
     drone.land()
 
 except KeyboardInterrupt:
