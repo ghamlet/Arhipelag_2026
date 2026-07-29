@@ -1,0 +1,4 @@
+ai-edge-litert
+numpy
+opencv-python-headless
+roslibpy

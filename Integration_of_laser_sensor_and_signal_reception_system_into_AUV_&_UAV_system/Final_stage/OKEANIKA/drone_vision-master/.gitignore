@@ -1,0 +1,5 @@
+.python-version
+build/*.gz
+build/*.tar
+output/*.jpg
+venv
