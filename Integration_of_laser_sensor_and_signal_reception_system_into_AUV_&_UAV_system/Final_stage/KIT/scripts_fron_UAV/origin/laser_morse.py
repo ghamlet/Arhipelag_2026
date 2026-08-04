@@ -14,31 +14,59 @@ def main():
     drone.start()
 
     try:
+        while not rospy.is_shutdown():
+            try:
+                interval = 0.5
+                # Убеждаемся, что лазер выключен   
+                rospy.loginfo('Turning laser off')
+                drone.set_laser(0)
 
-        # Убеждаемся, что лазер выключен   
-        rospy.loginfo('Turning laser off')
-        drone.set_laser(0)
+                # Лазер горит 2 секунды
+                rospy.loginfo('Laser on for 2 seconds')
+                drone.set_laser(1)
+                time.sleep(4)
+                drone.set_laser(0)
 
-        # Посылаем точку
-        rospy.loginfo('Sending dot via laser beam')
-        drone.set_laser(1)
-        time.sleep(1)
-        drone.set_laser(0)
+                # Лазер выключен на 0.5 секунды
+                rospy.loginfo('Laser off for 0.5 seconds')
+                drone.set_laser(0)
+                time.sleep(interval)
 
-        # Посылаем тире
-        rospy.loginfo('Sending dash via laser beam')
-        drone.set_laser(1)
-        time.sleep(3)
-        drone.set_laser(0)
+                # Равные промежутки горения и выключения
+                rospy.loginfo('Laser on for 0.5 seconds')
+                drone.set_laser(1)
+                time.sleep(interval)
+                drone.set_laser(0)
 
-        # Возвращаем управление джойстику и прекращаем работу с библиотекой
-        drone.set_offline_mode()
-        drone.stop()
+                rospy.loginfo('Laser off for 0.5 seconds')
+                drone.set_laser(0)
+                time.sleep(interval)
 
+                rospy.loginfo('Laser on for 0.5 seconds')
+                drone.set_laser(1)
+                time.sleep(interval)
+                drone.set_laser(0)
+
+              
+
+            except rospy.ROSInterruptException:
+                # Прерывание по Ctrl+C
+                print('Interrupted by user (Ctrl+C)')
+                break
+                
+    except KeyboardInterrupt:
+        # Альтернативный способ перехвата Ctrl+C
+        print('Keyboard interrupt received')
+        
     except Exception as e:
         rospy.logerr(f'Error: {e}')
+        
+    finally:
+        # Гарантированно выключаем лазер и останавливаем дрон
+        rospy.loginfo('Stopping drone and turning off laser...')
+        drone.set_laser(0)
         drone.stop()
-        raise
+        rospy.loginfo('Drone stopped successfully')
 
 
 if __name__ == '__main__':

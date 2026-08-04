@@ -79,3 +79,34 @@ celerybeat-schedule
 
 # dotenv
 .env.local
+
+# Media files (photos)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tif
+*.tiff
+*.webp
+
+# Model weights
+*.onnx
+*.pt
+*.pth
+*.rknn
+*.tflite
+*.h5
+
+# Release media folder (mirror of the project tree, photos & videos only)
+media/
+
+# Videos excluded from git (>= 100 MiB or duplicate copies); pushed only into media/
+Integration_of_laser_sensor_and_signal_reception_system_into_AUV_&_UAV_system/Final_stage/records/from_drone/drone_2026-07-28_16-45-05.mp4
+Integration_of_laser_sensor_and_signal_reception_system_into_AUV_&_UAV_system/Final_stage/water_drom/out.mp4
+Integration_of_laser_sensor_and_signal_reception_system_into_AUV_&_UAV_system/Final_stage/records/vid4.avi
+Intelligent_monitoring_of_water_bodies_using_computer_vision/drone_20260725_143029.mp4
+Intelligent_monitoring_of_water_bodies_using_computer_vision/Final_stage/video_recording/records/drone_20260726_175047.mp4
+Intelligent_monitoring_of_water_bodies_using_computer_vision/Final_stage/video_recording/records/drone_20260726_153824.mp4
+Intelligent_monitoring_of_water_bodies_using_computer_vision/Final_stage/video_recording/records/drone_20260726_160947.mp4
+Intelligent_monitoring_of_water_bodies_using_computer_vision/Final_stage/aruco_detection/4.mp4

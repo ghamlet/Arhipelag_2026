@@ -1,16 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Laser Transmitter - Hamming(7,4) protocol
-Передаёт цифру 0-15 через лазер дрона по протоколу:
-- Start bit: 600ms ON
-- 7 bits: 200ms each (1=ON, 0=OFF)
-- Tolerance: ±70ms
-"""
 
-import rospy
 import time
-import sys
 from user.library import DroneLibrary
 
 
@@ -45,7 +36,7 @@ def send_digit(drone, digit, verbose=True):
     bits = encode_hamming_7(digit)
     
     if verbose:
-        rospy.loginfo(f"Sending digit {digit} -> bits: {bits}")
+        print(f"Sending digit {digit} -> bits: {bits}")
     
     # Ensure laser is off first
     drone.set_laser(0)
@@ -53,7 +44,7 @@ def send_digit(drone, digit, verbose=True):
     
     # START BIT: 600ms ON
     if verbose:
-        rospy.loginfo("Start bit: 600ms ON")
+        print("Start bit: 600ms ON")
     drone.set_laser(1)
     time.sleep(START_DURATION)
     drone.set_laser(0)
@@ -62,7 +53,7 @@ def send_digit(drone, digit, verbose=True):
     # 7 DATA BITS: 200ms each
     for i, bit in enumerate(bits):
         if verbose:
-            rospy.loginfo(f"Bit {i+1}/7: {'ON' if bit else 'OFF'} ({BIT_DURATION*1000:.0f}ms)")
+            print(f"Bit {i+1}/7: {'ON' if bit else 'OFF'} ({BIT_DURATION*1000:.0f}ms)")
         
         if bit == 1:
             drone.set_laser(1)
@@ -78,40 +69,49 @@ def send_digit(drone, digit, verbose=True):
     drone.set_laser(0)
     
     if verbose:
-        rospy.loginfo("Transmission complete")
+        print("Transmission complete")
 
 
 def main():
-    rospy.init_node('laser_tx_node', anonymous=True)
-    
-    # Parse argument
-    if len(sys.argv) > 1:
-        try:
-            digit = int(sys.argv[1])
-            if not 0 <= digit <= 15:
-                rospy.logerr("Digit must be 0-15")
-                return
-        except ValueError:
-            rospy.logerr("Usage: laser_tx.py <digit 0-15>")
-            return
-    else:
-        digit = 5  # Default test value
-        rospy.logwarn(f"No digit provided, sending default: {digit}")
-    
+    # Инициализация библиотеки
     drone = DroneLibrary()
+    
+    # Переводим дрон в автономный режим
     drone.start()
     
     try:
-        rospy.loginfo(f"Starting laser transmission: digit={digit}")
-        send_digit(drone, digit)
-        rospy.loginfo("Done")
+        while True:
+            try:
+                # Убеждаемся, что лазер выключен   
+                print('Turning laser off')
+                drone.set_laser(0)
+                
+                # Передаём цифру 5 (можно заменить на нужную)
+                digit = 5
+                print(f"Starting laser transmission: digit={digit}")
+                send_digit(drone, digit)
+                print("Done")
+                
+                # Пауза между передачами
+                time.sleep(2)
+                
+            except KeyboardInterrupt:
+                print('Interrupted by user (Ctrl+C)')
+                break
+                
+    except KeyboardInterrupt:
+        print('Keyboard interrupt received')
         
     except Exception as e:
-        rospy.logerr(f"Error: {e}")
+        print(f'Error: {e}')
+        
     finally:
+        # Гарантированно выключаем лазер и останавливаем дрон
+        print('Stopping drone and turning off laser...')
         drone.set_laser(0)
         drone.set_offline_mode()
         drone.stop()
+        print('Drone stopped successfully')
 
 
 if __name__ == '__main__':
